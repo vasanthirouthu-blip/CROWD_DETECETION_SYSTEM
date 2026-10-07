@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Login - AI Crowd Detection</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='login.css') }}">
+
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="login-card">
+
+        <div class="logo">
+            👥
+        </div>
+
+        <h1>
+            AI Crowd Detection
+        </h1>
+
+        <p class="subtitle">
+            Crowd Detection & Management System
+        </p>
+
+        <form method="POST"
+              action="/login">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                type="text"
+                name="username"
+                placeholder="Enter username"
+                required
+            >
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Enter password"
+                required
+            >
+
+            {% if error %}
+
+            <div class="error">
+                {{ error }}
+            </div>
+
+            {% endif %}
+
+            <button type="submit">
+                LOGIN
+            </button>
+
+        </form>
+
+        <div class="login-footer">
+            SDG 11 • Sustainable Cities & Communities
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

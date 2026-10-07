@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Crowd Detection & Management</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<header class="header">
+
+    <div>
+
+        <h1>🤖 AI Crowd Detection & Management System</h1>
+
+        <p>Real-Time Crowd Monitoring Dashboard</p>
+
+    </div>
+
+    <div class="sdg-badge">
+        SDG 11
+    </div>
+
+</header>
+
+
+
+<div class="container">
+
+
+    <!-- STAT CARDS -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+
+            <h3>👥 PEOPLE COUNT</h3>
+
+            <div class="value"
+                 id="peopleCount">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3>🎯 CAPACITY LIMIT</h3>
+
+            <div class="value">
+                {{ limit }}
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3>🚦 CURRENT STATUS</h3>
+
+            <div class="value status-normal"
+                 id="status">
+
+                NORMAL
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3>📷 CAMERA</h3>
+
+            <div class="value status-normal"
+                 id="cameraStatus">
+
+                READY
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- CAMERA + MONITORING -->
+
+    <div class="main-grid">
+
+
+        <!-- CAMERA -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                📷 Live AI Camera
+
+            </div>
+
+
+            <div class="camera-wrapper">
+
+                <video id="cameraVideo"
+                       autoplay
+                       playsinline>
+
+                </video>
+
+
+                <canvas id="cameraCanvas"
+                        style="display:none;">
+
+                </canvas>
+
+            </div>
+
+
+            <button id="startCameraButton">
+
+                📷 Start Camera
+
+            </button>
+
+        </div>
+
+
+
+        <!-- MONITORING -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                📊 Monitoring Area
+
+            </div>
+
+
+            <div class="monitor-panel">
+
+
+                <div class="monitor-item">
+
+                    <h3>👥 PEOPLE DETECTED</h3>
+
+                    <div class="monitor-value"
+                         id="monitorPeople">
+
+                        0
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="monitor-item">
+
+                    <h3>🎯 CAPACITY</h3>
+
+                    <div class="monitor-value">
+
+                        {{ limit }}
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="monitor-item">
+
+                    <h3>🚦 STATUS</h3>
+
+                    <div class="monitor-value status-normal"
+                         id="monitorStatus">
+
+                        NORMAL
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="monitor-item">
+
+                    <h3>🕒 LAST UPDATED</h3>
+
+                    <div class="monitor-value"
+                         id="lastUpdated">
+
+                        --
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ALERT -->
+
+    <div class="card alert-box">
+
+        <h2>
+            🚨 Crowd Alert System
+        </h2>
+
+
+        <p id="alertMessage">
+
+            System is operating normally.
+
+        </p>
+
+
+        <button id="soundButton">
+
+            🔊 Enable Alert Sound
+
+        </button>
+
+    </div>
+
+
+
+    <!-- HISTORY -->
+
+    <div class="table-card">
+
+        <h2>
+            📋 Crowd Detection History
+        </h2>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Time</th>
+
+                    <th>People Count</th>
+
+                    <th>Status</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="historyTable">
+
+                <tr>
+
+                    <td colspan="4">
+
+                        Loading...
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+
+    <!-- WORKFLOW -->
+
+    <div class="table-card">
+
+        <h2>
+            ⚙️ System Workflow
+        </h2>
+
+
+        <div class="workflow">
+
+
+            <div class="workflow-item">
+
+                📷<br>
+
+                Camera
+
+            </div>
+
+
+            <div class="workflow-item">
+
+                🤖<br>
+
+                YOLO AI
+
+            </div>
+
+
+            <div class="workflow-item">
+
+                👥<br>
+
+                People Count
+
+            </div>
+
+
+            <div class="workflow-item">
+
+                🗄️<br>
+
+                Database
+
+            </div>
+
+
+            <div class="workflow-item">
+
+                🚨<br>
+
+                Alert
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- FOOTER -->
+
+<div class="footer">
+
+    AI-Based Crowd Detection and Management System |
+
+    SDG 11 – Sustainable Cities and Communities
+
+</div>
+
+
+
+<script>
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let lastStatus = "NORMAL";
+
+let audioContext = null;
+
+let alertsEnabled = false;
+
+let cameraStream = null;
+
+
+
+/* =========================================
+   STATUS UPDATE
+========================================= */
+
+async function updateStatus() {
+
+    try {
+
+        const response = await fetch("/status");
+
+        const data = await response.json();
+
+
+        document.getElementById("peopleCount").textContent =
+            data.people;
+
+
+        document.getElementById("monitorPeople").textContent =
+            data.people;
+
+
+        document.getElementById("status").textContent =
+            data.status;
+
+
+        document.getElementById("monitorStatus").textContent =
+            data.status;
+
+
+
+        /* CAMERA STATUS */
+
+        const camera =
+            document.getElementById("cameraStatus");
+
+
+        if (cameraStream) {
+
+            camera.textContent = "ONLINE";
+
+            camera.className =
+                "value status-normal";
+
+        }
+
+        else {
+
+            camera.textContent = "READY";
+
+            camera.className =
+                "value status-normal";
+
+        }
+
+
+
+        /* STATUS COLOR */
+
+        const status1 =
+            document.getElementById("status");
+
+        const status2 =
+            document.getElementById("monitorStatus");
+
+
+
+        if (data.status === "OVER CROWDED") {
+
+            status1.className =
+                "value status-danger";
+
+
+            status2.className =
+                "monitor-value status-danger";
+
+
+            document.getElementById("alertMessage").textContent =
+                "⚠️ WARNING! Crowd limit exceeded.";
+
+
+            if (lastStatus !== "OVER CROWDED") {
+
+                playAlertSound();
+
+            }
+
+        }
+
+        else {
+
+            status1.className =
+                "value status-normal";
+
+
+            status2.className =
+                "monitor-value status-normal";
+
+
+            document.getElementById("alertMessage").textContent =
+                "✅ System is operating normally.";
+
+        }
+
+
+
+        lastStatus = data.status;
+
+
+
+        /* TIME */
+
+        document.getElementById("lastUpdated").textContent =
+            new Date().toLocaleTimeString();
+
+    }
+
+
+    catch (error) {
+
+        console.log(
+            "Status error:",
+            error
+        );
+
+    }
+
+}
+
+
+
+/* =========================================
+   DATABASE HISTORY
+========================================= */
+
+async function loadHistory() {
+
+    try {
+
+        const response =
+            await fetch("/history");
+
+
+        const records =
+            await response.json();
+
+
+        const table =
+            document.getElementById("historyTable");
+
+
+        table.innerHTML = "";
+
+
+
+        if (records.length === 0) {
+
+            table.innerHTML =
+                "<tr><td colspan='4'>No records yet</td></tr>";
+
+            return;
+
+        }
+
+
+
+        records.forEach(record => {
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>${record[0]}</td>
+
+                <td>${record[1]}</td>
+
+                <td>${record[2]}</td>
+
+                <td>${record[3]}</td>
+
+            `;
+
+
+            table.appendChild(row);
+
+        });
+
+    }
+
+
+    catch (error) {
+
+        console.log(
+            "History error:",
+            error
+        );
+
+    }
+
+}
+
+
+
+/* =========================================
+   SOUND BUTTON
+========================================= */
+
+document.getElementById("soundButton")
+.addEventListener("click", async function() {
+
+    audioContext =
+        new (
+            window.AudioContext ||
+            window.webkitAudioContext
+        )();
+
+
+    await audioContext.resume();
+
+
+    alertsEnabled = true;
+
+
+    this.textContent =
+        "🔊 Alert Sound Enabled";
+
+});
+
+
+
+/* =========================================
+   ALERT SOUND
+========================================= */
+
+function playAlertSound() {
+
+    if (
+        !alertsEnabled ||
+        !audioContext
+    ) {
+
+        return;
+
+    }
+
+
+    const oscillator =
+        audioContext.createOscillator();
+
+
+    const gain =
+        audioContext.createGain();
+
+
+    oscillator.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+
+    oscillator.type =
+        "square";
+
+
+    oscillator.frequency.value =
+        900;
+
+
+    gain.gain.value =
+        0.4;
+
+
+    oscillator.start();
+
+
+    setTimeout(function() {
+
+        oscillator.stop();
+
+    }, 1000);
+
+}
+
+
+
+/* =========================================
+   START CAMERA
+========================================= */
+
+const video =
+    document.getElementById(
+        "cameraVideo"
+    );
+
+
+const canvas =
+    document.getElementById(
+        "cameraCanvas"
+    );
+
+
+const startCameraButton =
+    document.getElementById(
+        "startCameraButton"
+    );
+
+
+
+startCameraButton.addEventListener(
+    "click",
+    async function() {
+
+        try {
+
+
+            /* REQUEST VISITOR CAMERA */
+
+            cameraStream =
+                await navigator.mediaDevices.getUserMedia({
+
+                    video: true,
+
+                    audio: false
+
+                });
+
+
+
+            /* SHOW CAMERA */
+
+            video.srcObject =
+                cameraStream;
+
+
+
+            startCameraButton.textContent =
+                "📷 Camera Started";
+
+
+            startCameraButton.disabled =
+                true;
+
+
+
+            document.getElementById(
+                "cameraStatus"
+            ).textContent =
+                "ONLINE";
+
+
+            document.getElementById(
+                "cameraStatus"
+            ).className =
+                "value status-normal";
+
+
+
+            /* START AI */
+
+            startDetection();
+
+        }
+
+
+        catch (error) {
+
+            console.log(
+                "Camera error:",
+                error
+            );
+
+
+            alert(
+                "Camera permission was denied or camera is not available."
+            );
+
+        }
+
+    }
+);
+
+
+
+/* =========================================
+   SEND CAMERA FRAME TO YOLO
+========================================= */
+
+function startDetection() {
+
+
+    setInterval(async function() {
+
+
+        /* CHECK CAMERA */
+
+        if (
+            !video.videoWidth ||
+            !video.videoHeight
+        ) {
+
+            return;
+
+        }
+
+
+
+        /* SET CANVAS SIZE */
+
+        canvas.width =
+            video.videoWidth;
+
+
+        canvas.height =
+            video.videoHeight;
+
+
+
+        const context =
+            canvas.getContext("2d");
+
+
+
+        /* COPY CAMERA FRAME */
+
+        context.drawImage(
+
+            video,
+
+            0,
+
+            0,
+
+            canvas.width,
+
+            canvas.height
+
+        );
+
+
+
+        /* CONVERT FRAME TO IMAGE */
+
+        canvas.toBlob(
+            async function(blob) {
+
+
+                if (!blob) {
+
+                    return;
+
+                }
+
+
+
+                /* CREATE FORM DATA */
+
+                const formData =
+                    new FormData();
+
+
+                formData.append(
+
+                    "image",
+
+                    blob,
+
+                    "camera.jpg"
+
+                );
+
+
+
+                try {
+
+
+                    /* SEND IMAGE TO FLASK */
+
+                    const response =
+                        await fetch(
+
+                            "/detect",
+
+                            {
+
+                                method: "POST",
+
+                                body: formData
+
+                            }
+
+                        );
+
+
+
+                    const data =
+                        await response.json();
+
+
+
+                    /* UPDATE DASHBOARD */
+
+                    if (data.success) {
+
+
+                        document.getElementById(
+                            "peopleCount"
+                        ).textContent =
+                            data.people;
+
+
+                        document.getElementById(
+                            "monitorPeople"
+                        ).textContent =
+                            data.people;
+
+
+                        document.getElementById(
+                            "status"
+                        ).textContent =
+                            data.status;
+
+
+                        document.getElementById(
+                            "monitorStatus"
+                        ).textContent =
+                            data.status;
+
+
+                        document.getElementById(
+                            "lastUpdated"
+                        ).textContent =
+                            new Date()
+                            .toLocaleTimeString();
+
+
+
+                        /* STATUS COLORS */
+
+                        const status1 =
+                            document.getElementById(
+                                "status"
+                            );
+
+
+                        const status2 =
+                            document.getElementById(
+                                "monitorStatus"
+                            );
+
+
+
+                        if (
+                            data.status ===
+                            "OVER CROWDED"
+                        ) {
+
+
+                            status1.className =
+                                "value status-danger";
+
+
+                            status2.className =
+                                "monitor-value status-danger";
+
+
+                            document.getElementById(
+                                "alertMessage"
+                            ).textContent =
+                                "⚠️ WARNING! Crowd limit exceeded.";
+
+
+                            if (
+                                lastStatus !==
+                                "OVER CROWDED"
+                            ) {
+
+                                playAlertSound();
+
+                            }
+
+                        }
+
+
+                        else {
+
+
+                            status1.className =
+                                "value status-normal";
+
+
+                            status2.className =
+                                "monitor-value status-normal";
+
+
+                            document.getElementById(
+                                "alertMessage"
+                            ).textContent =
+                                "✅ System is operating normally.";
+
+                        }
+
+
+
+                        lastStatus =
+                            data.status;
+
+                    }
+
+                }
+
+
+                catch (error) {
+
+                    console.log(
+                        "Detection error:",
+                        error
+                    );
+
+                }
+
+            },
+
+            "image/jpeg",
+
+            0.7
+
+        );
+
+
+    }, 1000);
+
+}
+
+
+
+/* =========================================
+   START DASHBOARD
+========================================= */
+
+updateStatus();
+
+loadHistory();
+
+
+setInterval(
+    updateStatus,
+    2000
+);
+
+
+setInterval(
+    loadHistory,
+    5000
+);
+
+
+</script>
+
+
+
+</body>
+
+</html>
